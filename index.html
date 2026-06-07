@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Boredom Destroyer</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="page-overlay" id="pageOverlay"></div>
+  <div class="web-shell" id="webShell"></div>
+  <div class="sparkle-zone" id="sparkleZone"></div>
+
+  <main class="app-container">
+    <section id="landingScreen" class="screen landing active">
+      <div class="landing-copy">
+        <div class="spider-web-glow"></div>
+        <h1>ARE YOU BORED?</h1>
+        <div class="landing-buttons">
+          <button class="hero-button yes-button" id="yesButton">YES 😭</button>
+          <button class="hero-button no-button" id="noButton">NO 😎</button>
+        </div>
+        <p class="landing-hint">Tap YES to destroy boredom with purple energy.</p>
+      </div>
+    </section>
+
+    <section id="dashboardScreen" class="screen dashboard">
+      <div class="top-bar">
+        <div>
+          <p class="mini-label">Boredom Destroyer</p>
+          <h2>Welcome to the Boredom Destroyer!</h2>
+        </div>
+        <button class="mood-booster-button" id="moodBoosterButton">Mood Booster</button>
+      </div>
+
+      <div class="dashboard-grid">
+        <article class="glass-card" data-target="lyricsScreen">
+          <span>Guess The Lyrics</span>
+          <p>Dreamy BTS-inspired lyric challenge.</p>
+        </article>
+        <article class="glass-card" data-target="roastScreen">
+          <span>Marvel Roasts</span>
+          <p>Generate playful superhero burns.</p>
+        </article>
+        <article class="glass-card" data-target="discoScreen">
+          <span>Disco Room</span>
+          <p>Move with neon beats and laser flash.</p>
+        </article>
+        <article class="glass-card" data-target="vibeScreen">
+          <span>BTS Vibe Matcher</span>
+          <p>Find your BTS personality match.</p>
+        </article>
+      </div>
+
+      <div class="dashboard-footer">
+        <div class="floating-haze"></div>
+        <p>Tap a card to swing into the next level of fun.</p>
+      </div>
+    </section>
+
+    <section id="lyricsScreen" class="screen game-screen">
+      <button class="back-button" data-target="dashboardScreen">← Back</button>
+      <div class="game-header">
+        <h2>Guess The Lyrics</h2>
+        <div class="progress-pill" id="lyricsProgress">1 / 20</div>
+      </div>
+      <div class="game-card glass-card">
+        <p class="lyric-snippet" id="lyricSnippet">Loading lyric...</p>
+        <input id="lyricsAnswer" type="text" placeholder="Type your dreamy guess..." autocomplete="off" />
+        <div class="game-actions">
+          <button id="lyricsSubmit" class="action-button">Submit</button>
+          <button id="lyricsSkip" class="ghost-button">Skip</button>
+        </div>
+        <p class="game-feedback" id="lyricsFeedback"></p>
+        <div class="score-row">
+          <span>Score</span>
+          <strong id="lyricsScore">0</strong>
+        </div>
+      </div>
+    </section>
+
+    <section id="roastScreen" class="screen game-screen">
+      <button class="back-button" data-target="dashboardScreen">← Back</button>
+      <div class="game-header">
+        <h2>Marvel Roasts</h2>
+        <p class="mini-label">Playful roasts for your heroic energy.</p>
+      </div>
+      <div class="game-card glass-card roast-card">
+        <div class="roast-copy" id="roastText">Ready for a roast?</div>
+        <div class="game-actions">
+          <button id="generateRoast" class="action-button">Generate Roast</button>
+          <button id="copyRoast" class="ghost-button">Copy Roast</button>
+        </div>
+        <div class="roast-hint">Tap to summon fun with purple sparks.</div>
+      </div>
+    </section>
+
+    <section id="discoScreen" class="screen game-screen disco-screen">
+      <button class="back-button" data-target="dashboardScreen">← Back</button>
+      <div class="disco-stage">
+        <h2>PARTY PARTY YEAHHHH!</h2>
+        <p class="mini-label">Tap anywhere for light burst magic.</p>
+        <div class="disco-arena" id="discoArena"></div>
+        <div class="visualizer" id="visualizer"></div>
+        <div class="emoji-cloud" id="emojiCloud"></div>
+      </div>
+    </section>
+
+    <section id="vibeScreen" class="screen game-screen vibe-screen">
+      <button class="back-button" data-target="dashboardScreen">← Back</button>
+      <div class="game-header">
+        <h2>BTS Vibe Matcher</h2>
+        <div class="progress-pill" id="vibeProgress">1 / 5</div>
+      </div>
+      <div class="game-card glass-card quiz-card">
+        <p class="quiz-question" id="quizQuestion">Question text</p>
+        <div class="quiz-options" id="quizOptions"></div>
+        <button id="quizNext" class="action-button" disabled>Next</button>
+      </div>
+      <div class="result-card glass-card vibe-result hidden" id="vibeResultCard">
+        <p class="result-label">Your BTS Vibe Match Is...</p>
+        <h3 id="vibeResultName">7 Member Energy</h3>
+        <p id="vibeResultDescription">Feel the purple glow and dream lyrics style.</p>
+      </div>
+    </section>
+
+    <div class="toast" id="toast"></div>
+  </main>
+
+  <script src="js/games.js" defer></script>
+  <script src="js/quiz.js" defer></script>
+  <script src="js/effects.js" defer></script>
+  <script src="js/app.js" defer></script>
+</body>
+</html>
