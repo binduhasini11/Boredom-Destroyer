@@ -68,9 +68,12 @@ function showWebTransition(callback) {
     lines.push(line);
   }
   webShell.classList.add('active');
+  // block clicks briefly to prevent tap/click-through when screens change
+  pageOverlay.style.pointerEvents = 'auto';
   setTimeout(() => {
     webShell.classList.remove('active');
     if (typeof callback === 'function') callback();
+    setTimeout(() => { pageOverlay.style.pointerEvents = 'none'; }, 420);
   }, 700);
 }
 
@@ -108,7 +111,8 @@ function startLyricsGame() {
 
 function displayLyricQuestion() {
   const question = lyricsQuestions[currentLyricsIndex];
-  lyricSnippet.textContent = question.snippet;
+  // support both 'hint' and legacy 'snippet' keys
+  lyricSnippet.textContent = question.hint || question.snippet || '';
   lyricsProgress.textContent = `${currentLyricsIndex + 1} / ${lyricsQuestions.length}`;
 }
 
@@ -149,9 +153,15 @@ function skipLyricQuestion() {
 }
 
 function loadRoast() {
+  if (!Array.isArray(roastLines) || roastLines.length === 0) {
+    roastText.textContent = 'No roasts available right now. Try again later.';
+    currentRoast = '';
+    showToast('No roasts found.');
+    return;
+  }
   const roast = roastLines[Math.floor(Math.random() * roastLines.length)];
   currentRoast = roast;
-  roastText.textContent = roast;
+  if (roastText) roastText.textContent = roast;
   showToast('Roast generated!');
 }
 
@@ -253,14 +263,17 @@ function addEventListeners() {
   yesButton.addEventListener('click', () => {
     showWebTransition(() => switchScreen('dashboardScreen'));
   });
-  noButton.addEventListener('mousemove', moveNoButtonAway);
-  noButton.addEventListener('touchmove', event => moveNoButtonAway(event.touches[0] || event), { passive: true });
-  noButton.addEventListener('click', event => {
-    moveNoButtonAway(event);
-    event.preventDefault();
-  });
-  noButton.addEventListener('touchstart', event => moveNoButtonAway(event.touches[0] || event));
-  noButton.addEventListener('mouseleave', resetNoButton);
+  // Use global pointer events so the button escapes when cursor/touch gets close
+  const pointerHandler = (e) => {
+    // only active on landing screen
+    if (!landingScreen.classList.contains('active')) return;
+    const evt = e.type && e.type.startsWith('touch') ? (e.touches && e.touches[0]) || e : e;
+    moveNoButtonAway(evt);
+  };
+  document.addEventListener('pointermove', pointerHandler, { passive: true });
+  document.addEventListener('pointerdown', pointerHandler, { passive: true });
+  // reset when leaving landing
+  landingScreen.addEventListener('mouseleave', resetNoButton);
 
   dashboardCards.forEach(card => {
     card.addEventListener('click', () => {

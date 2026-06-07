@@ -207,6 +207,12 @@ button, input {
   gap: 1.5rem;
 }
 
+/* allow dashboard to scroll on small screens */
+.dashboard {
+  overflow-y: auto;
+  padding-bottom: 2.6rem;
+}
+
 .top-bar {
   display: flex;
   justify-content: space-between;
