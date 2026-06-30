@@ -3,133 +3,223 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Boredom Destroyer</title>
+  <meta name="description" content="Boredom Destroyer — a fun interactive web app with mini-games, humor, and BTS vibes." />
+  <title>Boredom Destroyer 💜</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div class="page-overlay" id="pageOverlay"></div>
-  <div class="web-shell" id="webShell"></div>
-  <div class="sparkle-zone" id="sparkleZone"></div>
+  <!-- Visual layers -->
+  <div class="page-overlay"  id="pageOverlay"  aria-hidden="true"></div>
+  <div class="web-shell"     id="webShell"     aria-hidden="true"></div>
+  <div class="sparkle-zone"  id="sparkleZone"  aria-hidden="true"></div>
 
-  <main class="app-container">
-    <section id="landingScreen" class="screen landing active">
-      <div class="landing-copy">
-        <div class="spider-web-glow"></div>
-        <h1>ARE YOU BORED?</h1>
+  <main class="app-container" role="main">
+
+    <!-- ═══════════════════════════════ LANDING ═══════════════════════════════ -->
+    <section id="landingScreen" class="screen landing active" aria-label="Landing page">
+      <div class="landing-copy" role="region" aria-labelledby="landingTitle">
+        <div class="landing-glow" aria-hidden="true"></div>
+        <div class="landing-emoji" aria-hidden="true">💜</div>
+        <h1 id="landingTitle">ARE YOU<br>BORED?</h1>
+        <p class="landing-sub">Your antidote to a dull day is one tap away.</p>
         <div class="landing-buttons">
-          <button class="hero-button yes-button" id="yesButton">YES 😭</button>
-          <button class="hero-button no-button" id="noButton">NO 😎</button>
+          <button class="hero-button yes-button" id="yesButton" aria-label="Yes, I am bored — enter the app">
+            YES 😭
+          </button>
+          <button class="hero-button no-button" id="noButton" aria-label="No, I am not bored">
+            NO 😎
+          </button>
         </div>
-        <p class="landing-hint">Tap YES to destroy boredom with purple energy.</p>
+        <p class="landing-hint" aria-live="polite">Tap YES to destroy boredom with purple energy.</p>
       </div>
     </section>
 
-    <section id="dashboardScreen" class="screen dashboard">
-      <div class="top-bar">
-        <div>
+    <!-- ══════════════════════════════ DASHBOARD ══════════════════════════════ -->
+    <section id="dashboardScreen" class="screen dashboard" aria-label="Dashboard" aria-hidden="true">
+      <header class="top-bar">
+        <div class="top-bar-title">
           <p class="mini-label">Boredom Destroyer</p>
-          <h2>Welcome to the Boredom Destroyer!</h2>
+          <h2>Pick Your Adventure</h2>
         </div>
-        <button class="mood-booster-button" id="moodBoosterButton">Mood Booster</button>
+        <button class="mood-booster-button" id="moodBoosterButton" aria-label="Get a mood boost message">
+          ✨ Mood Boost
+        </button>
+      </header>
+
+      <div class="dashboard-grid" role="list" aria-label="Activities">
+        <article class="glass-card" data-target="lyricsScreen" role="listitem"
+                 aria-label="Guess The Lyrics — BTS lyric challenge game">
+          <div class="card-icon" aria-hidden="true">🎵</div>
+          <span class="card-title">Guess The Lyrics</span>
+          <p class="card-desc">Test your BTS lyric knowledge in this dreamy challenge.</p>
+          <div class="card-arrow" aria-hidden="true">→</div>
+        </article>
+
+        <article class="glass-card" data-target="roastScreen" role="listitem"
+                 aria-label="Marvel Roasts — superhero roast generator">
+          <div class="card-icon" aria-hidden="true">🦸</div>
+          <span class="card-title">Marvel Roasts</span>
+          <p class="card-desc">Get playfully roasted by your favorite superheroes.</p>
+          <div class="card-arrow" aria-hidden="true">→</div>
+        </article>
+
+        <article class="glass-card" data-target="discoScreen" role="listitem"
+                 aria-label="Disco Room — interactive neon disco experience">
+          <div class="card-icon" aria-hidden="true">🪩</div>
+          <span class="card-title">Disco Room</span>
+          <p class="card-desc">Tap the floor for neon light bursts and pure disco chaos.</p>
+          <div class="card-arrow" aria-hidden="true">→</div>
+        </article>
+
+        <article class="glass-card" data-target="vibeScreen" role="listitem"
+                 aria-label="BTS Vibe Matcher — personality quiz">
+          <div class="card-icon" aria-hidden="true">💜</div>
+          <span class="card-title">BTS Vibe Matcher</span>
+          <p class="card-desc">Discover which BTS member matches your personality.</p>
+          <div class="card-arrow" aria-hidden="true">→</div>
+        </article>
       </div>
 
-      <div class="dashboard-grid">
-        <article class="glass-card" data-target="lyricsScreen">
-          <span>Guess The Lyrics</span>
-          <p>Dreamy BTS-inspired lyric challenge.</p>
-        </article>
-        <article class="glass-card" data-target="roastScreen">
-          <span>Marvel Roasts</span>
-          <p>Generate playful superhero burns.</p>
-        </article>
-        <article class="glass-card" data-target="discoScreen">
-          <span>Disco Room</span>
-          <p>Move with neon beats and laser flash.</p>
-        </article>
-        <article class="glass-card" data-target="vibeScreen">
-          <span>BTS Vibe Matcher</span>
-          <p>Find your BTS personality match.</p>
-        </article>
-      </div>
-
-      <div class="dashboard-footer">
-        <div class="floating-haze"></div>
-        <p>Tap a card to swing into the next level of fun.</p>
-      </div>
+      <footer class="dashboard-footer" aria-hidden="true">
+        <div class="footer-haze"></div>
+        <p>Tap a card to enter the next level of fun ✨</p>
+      </footer>
     </section>
 
-    <section id="lyricsScreen" class="screen game-screen">
-      <button class="back-button" data-target="dashboardScreen">← Back</button>
+    <!-- ═══════════════════════════ GUESS THE LYRICS ═════════════════════════ -->
+    <section id="lyricsScreen" class="screen game-screen" aria-label="Guess The Lyrics game" aria-hidden="true">
+      <button class="back-button" data-target="dashboardScreen" aria-label="Back to dashboard">← Back</button>
+
       <div class="game-header">
-        <h2>Guess The Lyrics</h2>
-        <div class="progress-pill" id="lyricsProgress">1 / 20</div>
-      </div>
-      <div class="game-card glass-card">
-        <p class="lyric-snippet" id="lyricSnippet">Loading lyric...</p>
-        <input id="lyricsAnswer" type="text" placeholder="Type your dreamy guess..." autocomplete="off" />
-        <div class="game-actions">
-          <button id="lyricsSubmit" class="action-button">Submit</button>
-          <button id="lyricsSkip" class="ghost-button">Skip</button>
+        <div>
+          <h2>Guess The Lyrics 🎵</h2>
+          <p class="mini-label">Fill in the missing word</p>
         </div>
-        <p class="game-feedback" id="lyricsFeedback"></p>
+        <div class="progress-pill" id="lyricsProgress" aria-live="polite" aria-label="Question progress">1 / 10</div>
+      </div>
+
+      <div class="progress-bar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="10">
+        <div class="progress-bar-fill" id="lyricsProgressBar"></div>
+      </div>
+
+      <div class="game-card glass-card">
+        <p class="lyric-snippet" id="lyricSnippet" aria-live="polite">Loading lyric...</p>
+        <label for="lyricsAnswer" class="sr-only">Your answer</label>
+        <input id="lyricsAnswer" type="text"
+               placeholder="Type your answer…"
+               autocomplete="off"
+               aria-label="Type your lyric answer here"
+               spellcheck="false" />
+        <div class="game-actions">
+          <button id="lyricsSubmit"  class="action-button"  aria-label="Submit answer">Submit</button>
+          <button id="lyricsSkip"    class="ghost-button"   aria-label="Skip this question">Skip</button>
+          <button id="lyricsRestart" class="ghost-button"   aria-label="Restart lyrics game">Restart</button>
+        </div>
+        <p class="game-feedback" id="lyricsFeedback" aria-live="polite" aria-atomic="true"></p>
         <div class="score-row">
           <span>Score</span>
-          <strong id="lyricsScore">0</strong>
+          <strong id="lyricsScore" aria-live="polite">0</strong>
         </div>
       </div>
     </section>
 
-    <section id="roastScreen" class="screen game-screen">
-      <button class="back-button" data-target="dashboardScreen">← Back</button>
+    <!-- ════════════════════════════ MARVEL ROASTS ════════════════════════════ -->
+    <section id="roastScreen" class="screen game-screen" aria-label="Marvel Roasts generator" aria-hidden="true">
+      <button class="back-button" data-target="dashboardScreen" aria-label="Back to dashboard">← Back</button>
+
       <div class="game-header">
-        <h2>Marvel Roasts</h2>
-        <p class="mini-label">Playful roasts for your heroic energy.</p>
+        <div>
+          <h2>Marvel Roasts 🔥</h2>
+          <p class="mini-label">Playful burns, superhero style</p>
+        </div>
       </div>
+
       <div class="game-card glass-card roast-card">
-        <div class="roast-copy" id="roastText">Ready for a roast?</div>
-        <div class="game-actions">
-          <button id="generateRoast" class="action-button">Generate Roast</button>
-          <button id="copyRoast" class="ghost-button">Copy Roast</button>
+        <div class="roast-copy" id="roastText" aria-live="polite" aria-label="Generated roast">
+          Ready for a roast? Hit the button below! 🦸
         </div>
-        <div class="roast-hint">Tap to summon fun with purple sparks.</div>
+        <div class="game-actions">
+          <button id="generateRoast" class="action-button" aria-label="Generate a new roast">
+            ⚡ Generate Roast
+          </button>
+          <button id="copyRoast" class="ghost-button" aria-label="Copy roast to clipboard">
+            📋 Copy
+          </button>
+        </div>
+        <p class="roast-hint">Tap to summon fun with purple sparks.</p>
       </div>
     </section>
 
-    <section id="discoScreen" class="screen game-screen disco-screen">
-      <button class="back-button" data-target="dashboardScreen">← Back</button>
+    <!-- ══════════════════════════════ DISCO ROOM ═════════════════════════════ -->
+    <section id="discoScreen" class="screen game-screen disco-screen" aria-label="Disco Room" aria-hidden="true">
+      <button class="back-button" data-target="dashboardScreen" aria-label="Back to dashboard">← Back</button>
+
       <div class="disco-stage">
-        <h2>PARTY PARTY YEAHHHH!</h2>
-        <p class="mini-label">Tap anywhere for light burst magic.</p>
-        <div class="disco-arena" id="discoArena"></div>
-        <div class="visualizer" id="visualizer"></div>
-        <div class="emoji-cloud" id="emojiCloud"></div>
+        <h2 class="disco-title" aria-label="Party Party Yeah!">PARTY PARTY<br>YEAH! 🎉</h2>
+        <p class="mini-label">Tap the floor for neon bursts!</p>
+
+        <div class="disco-controls">
+          <button id="discoMusicToggle" class="ghost-button disco-music-btn" aria-label="Toggle disco music">
+            🎵 Music Off
+          </button>
+        </div>
+
+        <div class="disco-arena" id="discoArena" role="button" tabindex="0"
+             aria-label="Disco floor — tap for light effects">
+          <div class="emoji-cloud" id="emojiCloud" aria-hidden="true"></div>
+        </div>
+
+        <div class="visualizer" id="visualizer" aria-hidden="true"></div>
       </div>
     </section>
 
-    <section id="vibeScreen" class="screen game-screen vibe-screen">
-      <button class="back-button" data-target="dashboardScreen">← Back</button>
+    <!-- ═══════════════════════════ BTS VIBE MATCHER ══════════════════════════ -->
+    <section id="vibeScreen" class="screen game-screen vibe-screen" aria-label="BTS Vibe Matcher quiz" aria-hidden="true">
+      <button class="back-button" data-target="dashboardScreen" aria-label="Back to dashboard">← Back</button>
+
       <div class="game-header">
-        <h2>BTS Vibe Matcher</h2>
-        <div class="progress-pill" id="vibeProgress">1 / 5</div>
+        <div>
+          <h2>BTS Vibe Matcher 💜</h2>
+          <p class="mini-label">5 questions to find your match</p>
+        </div>
+        <div class="progress-pill" id="vibeProgress" aria-live="polite" aria-label="Question progress">1 / 5</div>
       </div>
-      <div class="game-card glass-card quiz-card">
-        <p class="quiz-question" id="quizQuestion">Question text</p>
-        <div class="quiz-options" id="quizOptions"></div>
-        <button id="quizNext" class="action-button" disabled>Next</button>
+
+      <div class="progress-bar-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20">
+        <div class="progress-bar-fill" id="vibeProgressBar"></div>
       </div>
-      <div class="result-card glass-card vibe-result hidden" id="vibeResultCard">
-        <p class="result-label">Your BTS Vibe Match Is...</p>
-        <h3 id="vibeResultName">7 Member Energy</h3>
-        <p id="vibeResultDescription">Feel the purple glow and dream lyrics style.</p>
+
+      <!-- Question card -->
+      <div class="game-card glass-card quiz-card" id="quizCard">
+        <p class="quiz-question" id="quizQuestion" aria-live="polite">Loading question…</p>
+        <div class="quiz-options" id="quizOptions" role="group" aria-label="Answer choices"></div>
+        <div class="quiz-footer">
+          <button id="quizNext" class="action-button" disabled aria-label="Next question">Next →</button>
+        </div>
+      </div>
+
+      <!-- Result card -->
+      <div class="result-card glass-card vibe-result hidden" id="vibeResultCard" aria-live="polite">
+        <p class="result-label">✨ Your BTS Vibe Match Is…</p>
+        <div class="result-color-bar" id="vibeResultColor"></div>
+        <div class="result-emoji" id="vibeResultEmoji" aria-hidden="true">💜</div>
+        <h3 id="vibeResultName">Loading…</h3>
+        <p id="vibeResultDescription">Finding your match…</p>
+        <button id="quizRestart" class="action-button result-restart" aria-label="Retake the quiz">
+          🔄 Retake Quiz
+        </button>
       </div>
     </section>
 
-    <div class="toast" id="toast"></div>
+    <!-- Toast notification -->
+    <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
   </main>
 
-  <script src="js/games.js" defer></script>
-  <script src="js/quiz.js" defer></script>
+  <!-- Scripts (load order: data → effects → app) -->
+  <script src="js/games.js"  defer></script>
+  <script src="js/quiz.js"   defer></script>
   <script src="js/effects.js" defer></script>
-  <script src="js/app.js" defer></script>
+  <script src="js/app.js"    defer></script>
 </body>
 </html>

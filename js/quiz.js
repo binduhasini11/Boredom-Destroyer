@@ -1,58 +1,96 @@
+/**
+ * quiz.js — BTS Vibe Matcher quiz data
+ */
+
 const quizQuestions = [
   {
     prompt: 'What would you choose for a midnight adventure?',
-    choices: ['Sneaking into a neon rooftop party', 'Creating a bold new playlist', 'Training under purple city lights'],
-    match: ['Jimin', 'RM', 'V']
+    choices: [
+      'Sneaking into a neon rooftop party',
+      'Writing poetry by the city lights',
+      'Training until the stars come out'
+    ],
+    match: ['Jimin', 'RM', 'Jungkook']
   },
   {
-    prompt: 'Pick a snack for a cozy night in:',
-    choices: ['Sweet purple bubble tea', 'Sharp cheese and crackers', 'Spicy ramen with extra glow'],
+    prompt: 'Pick a vibe for a cozy night in:',
+    choices: [
+      'Warm laughter with close friends',
+      'Deep focus on a creative project',
+      'Full-energy dance practice alone'
+    ],
     match: ['Jin', 'SUGA', 'jhope']
   },
   {
     prompt: 'Your dream stage has:',
-    choices: ['A magical midnight sky', 'A poetic spotlight', 'A charged festival crowd'],
-    match: ['V', 'Jungkook', 'RM']
+    choices: [
+      'A dramatic, cinematic atmosphere',
+      'A raw spotlight on pure talent',
+      'A massive festival crowd going wild'
+    ],
+    match: ['V', 'Jungkook', 'jhope']
   },
   {
-    prompt: 'You bring friends together by:',
-    choices: ['A warm laugh and caring words', 'A clever idea full of energy', 'A calm, mysterious presence'],
-    match: ['Jin', 'jhope', 'SUGA']
+    prompt: 'You bring people together by:',
+    choices: [
+      'Making everyone laugh with a warm joke',
+      'Staying cool and quietly inspiring',
+      'Bringing unstoppable positive energy'
+    ],
+    match: ['Jin', 'SUGA', 'jhope']
   },
   {
-    prompt: 'The perfect vibe is:',
-    choices: ['Sweet, bright, and playful', 'Cool, confident, and powerful', 'Deep, thoughtful, and thoughtful'],
+    prompt: 'What describes your personal vibe best?',
+    choices: [
+      'Sweet, graceful, and emotionally deep',
+      'Confident, poetic, and introspective',
+      'Unique, artistic, and warmly mysterious'
+    ],
     match: ['Jimin', 'RM', 'V']
   }
 ];
 
 const vibeProfiles = {
   RM: {
-    name: 'RM',
-    description: 'Thoughtful leader energy with poetic vision and confident rhythm.'
+    name: 'RM — The Thoughtful Leader',
+    emoji: '📚',
+    description: 'Poetic vision, intellectual depth, and confident rhythm. You lead with both heart and mind.',
+    color: '#7c3aed'
   },
   Jin: {
-    name: 'Jin',
-    description: 'Playful heart with warm humor and caring warmth all around.'
+    name: 'Jin — The Radiant Warmth',
+    emoji: '🌸',
+    description: 'Pure joy, caring humor, and a laugh that heals. You are the light everyone needs.',
+    color: '#ec4899'
   },
   SUGA: {
-    name: 'SUGA',
-    description: 'Calm strategist with deep focus and creative spark behind the scenes.'
+    name: 'SUGA — The Creative Strategist',
+    emoji: '🎹',
+    description: 'Calm exterior, relentless creator underneath. Your depth and focus are your superpower.',
+    color: '#6366f1'
   },
   jhope: {
-    name: 'j-hope',
-    description: 'Bright dancer with unlimited enthusiasm and joyful sunshine.'
+    name: 'j-hope — The Sunshine',
+    emoji: '☀️',
+    description: 'Unstoppable energy, bright smiles, and a spirit that lifts every room you walk into.',
+    color: '#f59e0b'
   },
   Jimin: {
-    name: 'Jimin',
-    description: 'Sweet dreamer with charming energy and graceful style.'
+    name: 'Jimin — The Sweet Dreamer',
+    emoji: '🌙',
+    description: 'Graceful, emotional, and charming. You dream big and feel everything deeply.',
+    color: '#a855f7'
   },
   V: {
-    name: 'V',
-    description: 'Unique creative soul with dramatic flair and warm mystery.'
+    name: 'V — The Artistic Soul',
+    emoji: '🎨',
+    description: 'Unique creativity, warm mystery, and dramatic flair. You see beauty where others don\'t.',
+    color: '#14b8a6'
   },
   Jungkook: {
-    name: 'Jung Kook',
-    description: 'Determined spirit with bold energy and a confident spark.'
+    name: 'Jung Kook — The Golden One',
+    emoji: '⚡',
+    description: 'Determined, multi-talented, and boldly confident. You never stop growing.',
+    color: '#3b82f6'
   }
 };

@@ -1,340 +1,596 @@
-const screens = document.querySelectorAll('.screen');
-const pageOverlay = document.getElementById('pageOverlay');
-const webShell = document.getElementById('webShell');
-const sparkleZone = document.getElementById('sparkleZone');
-const landingScreen = document.getElementById('landingScreen');
-const dashboardScreen = document.getElementById('dashboardScreen');
-const noButton = document.getElementById('noButton');
-const yesButton = document.getElementById('yesButton');
-const toast = document.getElementById('toast');
-const dashboardCards = document.querySelectorAll('.dashboard-grid .glass-card');
-const moodBoosterButton = document.getElementById('moodBoosterButton');
-const lyricsScreen = document.getElementById('lyricsScreen');
-const roastScreen = document.getElementById('roastScreen');
-const discoScreen = document.getElementById('discoScreen');
-const vibeScreen = document.getElementById('vibeScreen');
-const backButtons = document.querySelectorAll('.back-button');
-const lyricSnippet = document.getElementById('lyricSnippet');
-const lyricsAnswer = document.getElementById('lyricsAnswer');
-const lyricsSubmit = document.getElementById('lyricsSubmit');
-const lyricsSkip = document.getElementById('lyricsSkip');
-const lyricsFeedback = document.getElementById('lyricsFeedback');
-const lyricsScore = document.getElementById('lyricsScore');
-const lyricsProgress = document.getElementById('lyricsProgress');
-const roastText = document.getElementById('roastText');
-const generateRoast = document.getElementById('generateRoast');
-const copyRoast = document.getElementById('copyRoast');
-const discoArena = document.getElementById('discoArena');
-const emojiCloud = document.getElementById('emojiCloud');
-const visualizer = document.getElementById('visualizer');
-const quizQuestion = document.getElementById('quizQuestion');
-const quizOptions = document.getElementById('quizOptions');
-const quizNext = document.getElementById('quizNext');
-const vibeProgress = document.getElementById('vibeProgress');
-const vibeResultCard = document.getElementById('vibeResultCard');
-const vibeResultName = document.getElementById('vibeResultName');
-const vibeResultDescription = document.getElementById('vibeResultDescription');
+/**
+ * app.js — Main application controller
+ * Handles navigation, game logic, event wiring, accessibility
+ */
 
+'use strict';
+
+// ─── DOM REFERENCES ──────────────────────────────────────────────────────────
+const $ = (id) => document.getElementById(id);
+const $$ = (sel) => document.querySelectorAll(sel);
+
+const landingScreen    = $('landingScreen');
+const dashboardScreen  = $('dashboardScreen');
+const lyricsScreen     = $('lyricsScreen');
+const roastScreen      = $('roastScreen');
+const discoScreen      = $('discoScreen');
+const vibeScreen       = $('vibeScreen');
+const pageOverlay      = $('pageOverlay');
+const sparkleZone      = $('sparkleZone');
+
+const yesButton        = $('yesButton');
+const noButton         = $('noButton');
+const moodBoosterBtn   = $('moodBoosterButton');
+
+// Lyrics
+const lyricSnippet     = $('lyricSnippet');
+const lyricsAnswer     = $('lyricsAnswer');
+const lyricsSubmit     = $('lyricsSubmit');
+const lyricsSkip       = $('lyricsSkip');
+const lyricsRestart    = $('lyricsRestart');
+const lyricsFeedback   = $('lyricsFeedback');
+const lyricsScoreEl    = $('lyricsScore');
+const lyricsProgress   = $('lyricsProgress');
+const lyricsProgressBar = $('lyricsProgressBar');
+
+// Roast
+const roastText        = $('roastText');
+const generateRoast    = $('generateRoast');
+const copyRoast        = $('copyRoast');
+
+// Disco
+const discoArena       = $('discoArena');
+const emojiCloud       = $('emojiCloud');
+const visualizer       = $('visualizer');
+const discoToggle      = $('discoMusicToggle');
+
+// Quiz
+const quizQuestion     = $('quizQuestion');
+const quizOptionsEl    = $('quizOptions');
+const quizNext         = $('quizNext');
+const vibeProgress     = $('vibeProgress');
+const vibeProgressBar  = $('vibeProgressBar');
+const vibeResultCard   = $('vibeResultCard');
+const vibeResultName   = $('vibeResultName');
+const vibeResultEmoji  = $('vibeResultEmoji');
+const vibeResultDesc   = $('vibeResultDescription');
+const vibeResultColor  = $('vibeResultColor');
+const quizRestart      = $('quizRestart');
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
 let currentLyricsIndex = 0;
-let lyricsScoreValue = 0;
-let currentQuizIndex = 0;
-let selectedAnswer = null;
-let quizAnswers = [];
-let currentRoast = '';
+let lyricsScoreValue   = 0;
+let usedLyricsIndices  = [];
+let shuffledLyrics     = [];
 
-function showToast(message) {
-  toast.textContent = message;
-  toast.classList.add('show');
-  clearTimeout(showToast.timeout);
-  showToast.timeout = setTimeout(() => toast.classList.remove('show'), 2400);
-}
+let currentQuizIndex   = 0;
+let selectedAnswer     = null;
+let quizAnswers        = [];
 
+let lastMoodIndex      = -1;
+let lastRoastIndex     = -1;
+let currentRoastText   = '';
+
+let noButtonPos        = { x: 0, y: 0 };
+let discoAudioCtx      = null;
+let discoOscillators   = [];
+let discoMusicOn       = false;
+let visualizerInterval = null;
+
+// ─── SCREEN ROUTER ───────────────────────────────────────────────────────────
 function switchScreen(targetId) {
-  const target = document.getElementById(targetId);
+  const target = $(targetId);
   if (!target) return;
-  screens.forEach(screen => screen.classList.remove('active'));
+  $$('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.setAttribute('aria-hidden', 'true');
+  });
   target.classList.add('active');
+  target.setAttribute('aria-hidden', 'false');
+  target.scrollTop = 0;
 }
 
-function showWebTransition(callback) {
-  const lines = [];
-  const count = 7;
-  webShell.innerHTML = '';
-  for (let i = 0; i < count; i += 1) {
-    const line = document.createElement('div');
-    line.className = 'web-line';
-    line.style.transform = `translate(-50%, -50%) rotate(${i * 25}deg)`;
-    webShell.appendChild(line);
-    lines.push(line);
+function navigateTo(targetId, initFn) {
+  showWebTransition(() => {
+    switchScreen(targetId);
+    if (typeof initFn === 'function') initFn();
+  });
+}
+
+// ─── LANDING PAGE — NO BUTTON ESCAPE ─────────────────────────────────────────
+function initNoButton() {
+  // Make NO button position:fixed so transform moves actual clickable area
+  noButton.style.position = 'fixed';
+
+  const rect  = noButton.getBoundingClientRect();
+  noButtonPos = { x: rect.left, y: rect.top };
+
+  function placeNoButton(x, y) {
+    const w   = window.innerWidth;
+    const h   = window.innerHeight;
+    const bw  = noButton.offsetWidth  || 170;
+    const bh  = noButton.offsetHeight || 58;
+    const pad = 16;
+    const nx  = Math.max(pad, Math.min(w - bw - pad, x));
+    const ny  = Math.max(pad, Math.min(h - bh - pad, y));
+    noButtonPos = { x: nx, y: ny };
+    noButton.style.left = `${nx}px`;
+    noButton.style.top  = `${ny}px`;
+    noButton.style.transform = 'none'; // use left/top instead of transform
   }
-  webShell.classList.add('active');
-  // block clicks briefly to prevent tap/click-through when screens change
-  pageOverlay.style.pointerEvents = 'auto';
-  setTimeout(() => {
-    webShell.classList.remove('active');
-    if (typeof callback === 'function') callback();
-    setTimeout(() => { pageOverlay.style.pointerEvents = 'none'; }, 420);
-  }, 700);
-}
 
-function randomOffset(value) {
-  return (Math.random() - 0.5) * value;
-}
-
-function moveNoButtonAway(event) {
-  const rect = noButton.getBoundingClientRect();
-  const dx = event.clientX - (rect.left + rect.width / 2);
-  const dy = event.clientY - (rect.top + rect.height / 2);
-  const distance = Math.sqrt(dx * dx + dy * dy);
-  if (distance < 160) {
-    const newX = Math.max(10, Math.min(window.innerWidth - rect.width - 10, rect.left + randomOffset(220)));
-    const newY = Math.max(10, Math.min(window.innerHeight - rect.height - 10, rect.top + randomOffset(180)));
-    noButton.style.transform = `translate(${newX - rect.left}px, ${newY - rect.top}px) rotate(${randomOffset(90)}deg)`;
-    const messages = ['Nice try 😏', 'You ARE bored.', 'Stop lying 😂', 'Almost had it!', 'Come on, be honest.'];
-    showToast(messages[Math.floor(Math.random() * messages.length)]);
+  function tryEscape(clientX, clientY) {
+    if (!landingScreen.classList.contains('active')) return;
+    const cx  = noButtonPos.x + (noButton.offsetWidth  / 2);
+    const cy  = noButtonPos.y + (noButton.offsetHeight / 2);
+    const dx  = clientX - cx;
+    const dy  = clientY - cy;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 140) {
+      // Push away in the opposite direction
+      const away = 200;
+      const newX = noButtonPos.x - (dx / dist) * away + (Math.random() - 0.5) * 120;
+      const newY = noButtonPos.y - (dy / dist) * away + (Math.random() - 0.5) * 120;
+      placeNoButton(newX, newY);
+      const msgs = ['Nice try 😏', 'You ARE bored.', 'Stop lying 😂', 'Almost had it!', 'Come on…'];
+      showToast(msgs[Math.floor(Math.random() * msgs.length)]);
+    }
   }
+
+  document.addEventListener('pointermove', (e) => tryEscape(e.clientX, e.clientY), { passive: true });
+  document.addEventListener('pointerdown', (e) => {
+    // If clicking the NO button itself, treat as an escape attempt too
+    if (e.target === noButton || noButton.contains(e.target)) {
+      tryEscape(e.clientX, e.clientY);
+      e.preventDefault();
+    }
+  });
+
+  // Reset to natural position when landing is hidden
+  function resetNoBtn() {
+    noButton.style.position = '';
+    noButton.style.left     = '';
+    noButton.style.top      = '';
+  }
+
+  // Snap back to layout when leaving landing
+  yesButton.addEventListener('click', resetNoBtn);
 }
 
-function resetNoButton() {
-  noButton.style.transform = '';
+// ─── LYRICS GAME ─────────────────────────────────────────────────────────────
+function shuffleArray(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
 }
 
 function startLyricsGame() {
+  shuffledLyrics     = shuffleArray(lyricsQuestions);
   currentLyricsIndex = 0;
-  lyricsScoreValue = 0;
-  lyricsScore.textContent = '0';
+  lyricsScoreValue   = 0;
+  lyricsScoreEl.textContent = '0';
   lyricsFeedback.textContent = '';
+  lyricsFeedback.className   = 'game-feedback';
   lyricsAnswer.value = '';
-  lyricsProgress.textContent = `1 / ${lyricsQuestions.length}`;
-  displayLyricQuestion();
+  lyricsSubmit.disabled = false;
+  lyricsSkip.disabled   = false;
+  renderLyricQuestion();
 }
 
-function displayLyricQuestion() {
-  const question = lyricsQuestions[currentLyricsIndex];
-  // support both 'hint' and legacy 'snippet' keys
-  lyricSnippet.textContent = question.hint || question.snippet || '';
-  lyricsProgress.textContent = `${currentLyricsIndex + 1} / ${lyricsQuestions.length}`;
+function renderLyricQuestion() {
+  const total    = shuffledLyrics.length;
+  const question = shuffledLyrics[currentLyricsIndex];
+
+  // Animate text change
+  lyricSnippet.classList.add('fade-out');
+  setTimeout(() => {
+    lyricSnippet.textContent = question.hint;
+    lyricSnippet.classList.remove('fade-out');
+  }, 180);
+
+  lyricsProgress.textContent     = `${currentLyricsIndex + 1} / ${total}`;
+  lyricsProgressBar.style.width  = `${((currentLyricsIndex + 1) / total) * 100}%`;
+  lyricsAnswer.value             = '';
+  lyricsFeedback.textContent     = '';
+  lyricsFeedback.className       = 'game-feedback';
+  lyricsAnswer.focus();
+}
+
+function finishLyricsGame() {
+  const total = shuffledLyrics.length;
+  lyricSnippet.textContent = `Game Over! You scored ${lyricsScoreValue} / ${total} 🎉`;
+  lyricsAnswer.disabled    = true;
+  lyricsSubmit.disabled    = true;
+  lyricsSkip.disabled      = true;
+  lyricsProgressBar.style.width = '100%';
+  lyricsProgress.textContent = `${total} / ${total}`;
+  if (lyricsScoreValue === total) {
+    launchConfetti();
+    showToast('PERFECT SCORE! Legendary fan energy! 💜', 'success');
+  } else {
+    showToast(`${lyricsScoreValue}/${total} — Not bad, purple warrior!`, 'info');
+  }
 }
 
 function submitLyricAnswer() {
-  const guess = lyricsAnswer.value.trim().toLowerCase();
-  const correct = lyricsQuestions[currentLyricsIndex].answer.toLowerCase();
+  const guess   = lyricsAnswer.value.trim().toLowerCase();
+  const correct = shuffledLyrics[currentLyricsIndex].answer.toLowerCase();
   if (!guess) {
-    lyricsFeedback.textContent = 'Type your dreamy guess before submitting.';
+    setFeedback('Type your dreamy guess before submitting.', 'neutral');
     return;
   }
-  if (guess === correct) {
-    lyricsScoreValue += 1;
-    lyricsScore.textContent = `${lyricsScoreValue}`;
-    lyricsFeedback.textContent = 'Correct! Purple confetti explosion! 🎉';
-    lyricsFeedback.style.color = '#b1d780';
-    burstSparkles(18, '#c86cff');
+  if (guess === correct || guess.includes(correct) || correct.includes(guess)) {
+    lyricsScoreValue++;
+    lyricsScoreEl.textContent = `${lyricsScoreValue}`;
+    setFeedback('✓ Correct! Purple confetti explosion! 🎉', 'correct');
+    burstSparkles(16, '#c86cff');
+    lyricsSubmit.disabled = true;
+    lyricsSkip.disabled   = true;
     setTimeout(() => {
-      currentLyricsIndex += 1;
-      if (currentLyricsIndex >= lyricsQuestions.length) {
-        lyricsFeedback.textContent = 'You crushed the lyrics challenge!';
-        showToast('Legendary fan energy unlocked.');
+      lyricsSubmit.disabled = false;
+      lyricsSkip.disabled   = false;
+      currentLyricsIndex++;
+      if (currentLyricsIndex >= shuffledLyrics.length) {
+        finishLyricsGame();
       } else {
-        lyricsAnswer.value = '';
-        displayLyricQuestion();
+        renderLyricQuestion();
       }
-    }, 800);
+    }, 1000);
   } else {
-    lyricsFeedback.textContent = ['Try again, purple warrior.', 'Not quite yet!', 'Feels like a remix miss.'][Math.floor(Math.random() * 3)];
-    lyricsFeedback.style.color = '#ff8fa0';
+    setFeedback(['Try again, purple warrior. 💪', 'Not quite! The answer is hiding…', 'Feels like a remix miss.'][Math.floor(Math.random() * 3)], 'wrong');
+    lyricsAnswer.select();
   }
 }
 
 function skipLyricQuestion() {
-  currentLyricsIndex = Math.min(currentLyricsIndex + 1, lyricsQuestions.length - 1);
-  lyricsAnswer.value = '';
-  lyricsFeedback.textContent = 'Skipped. Keep the glow flowing.';
-  displayLyricQuestion();
+  const correct = shuffledLyrics[currentLyricsIndex].answer;
+  setFeedback(`Skipped — the answer was: "${correct}"`, 'neutral');
+  lyricsSkip.disabled   = true;
+  lyricsSubmit.disabled = true;
+  setTimeout(() => {
+    lyricsSubmit.disabled = false;
+    lyricsSkip.disabled   = false;
+    currentLyricsIndex++;
+    if (currentLyricsIndex >= shuffledLyrics.length) {
+      finishLyricsGame();
+    } else {
+      renderLyricQuestion();
+    }
+  }, 1200);
 }
 
+function setFeedback(msg, type) {
+  lyricsFeedback.textContent = msg;
+  lyricsFeedback.className   = `game-feedback feedback--${type}`;
+}
+
+// ─── ROAST GENERATOR ─────────────────────────────────────────────────────────
 function loadRoast() {
-  if (!Array.isArray(roastLines) || roastLines.length === 0) {
-    roastText.textContent = 'No roasts available right now. Try again later.';
-    currentRoast = '';
-    showToast('No roasts found.');
-    return;
-  }
-  const roast = roastLines[Math.floor(Math.random() * roastLines.length)];
-  currentRoast = roast;
-  if (roastText) roastText.textContent = roast;
-  showToast('Roast generated!');
+  const pool = roastLines.filter((_, i) => i !== lastRoastIndex);
+  const idx  = Math.floor(Math.random() * pool.length);
+  const roast = pool[idx];
+  lastRoastIndex = roastLines.indexOf(roast);
+  currentRoastText = roast;
+
+  // Animated text reveal
+  roastText.classList.add('roast-reveal');
+  roastText.textContent = '';
+  setTimeout(() => {
+    roastText.textContent = roast;
+    roastText.classList.remove('roast-reveal');
+    roastText.classList.add('roast-visible');
+    setTimeout(() => roastText.classList.remove('roast-visible'), 600);
+  }, 180);
+
+  burstSparkles(10, '#ff7094');
+  showToast('Roast delivered! 🔥', 'success');
 }
 
 function copyCurrentRoast() {
-  if (!currentRoast) {
-    showToast('Generate a roast first.');
+  if (!currentRoastText) {
+    showToast('Generate a roast first!');
     return;
   }
-  navigator.clipboard.writeText(currentRoast).then(() => {
-    showToast('Roast copied!');
-  }).catch(() => {
-    showToast('Clipboard not available.');
-  });
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(currentRoastText)
+      .then(() => showToast('Roast copied to clipboard! 📋', 'success'))
+      .catch(() => fallbackCopy(currentRoastText));
+  } else {
+    fallbackCopy(currentRoastText);
+  }
 }
 
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0;';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('Roast copied! 📋', 'success');
+  } catch {
+    showToast('Could not copy — try manually.', 'error');
+  }
+  document.body.removeChild(ta);
+}
+
+// ─── MOOD BOOSTER ────────────────────────────────────────────────────────────
+function showMoodBoost() {
+  const pool  = moodBoostMessages.filter((_, i) => i !== lastMoodIndex);
+  const idx   = Math.floor(Math.random() * pool.length);
+  const msg   = pool[idx];
+  lastMoodIndex = moodBoostMessages.indexOf(msg);
+  showToast(msg, 'mood');
+  burstSparkles(8, '#b86bff');
+}
+
+// ─── DISCO ROOM ──────────────────────────────────────────────────────────────
 function initDiscoRoom() {
-  discoArena.innerHTML = '';
-  visualizer.innerHTML = '';
-  for (let i = 0; i < 8; i += 1) {
+  discoArena.innerHTML  = '';
+  emojiCloud.innerHTML  = '';
+  visualizer.innerHTML  = '';
+
+  // Visualizer bars
+  for (let i = 0; i < 10; i++) {
     const bar = document.createElement('span');
+    bar.style.animationDelay = `${(i * 0.09).toFixed(2)}s`;
     visualizer.appendChild(bar);
   }
-  for (let i = 0; i < 8; i += 1) {
+
+  // Floating sparks
+  for (let i = 0; i < 12; i++) {
     const spark = document.createElement('div');
     spark.className = 'disco-spark';
-    spark.style.left = `${10 + i * 11}%`;
-    spark.style.animationDelay = `${i * 0.12}s`;
+    spark.style.cssText = `
+      left:${5 + i * 8}%;
+      top:${20 + Math.sin(i) * 30}%;
+      animation-delay:${(i * 0.15).toFixed(2)}s;
+      background:hsl(${(i * 30) % 360},90%,70%);
+    `;
     discoArena.appendChild(spark);
   }
+
+  // Neon grid lines
+  for (let i = 0; i < 5; i++) {
+    const line = document.createElement('div');
+    line.className = 'disco-grid-line';
+    line.style.cssText = `top:${20 + i * 15}%;animation-delay:${i * 0.2}s;`;
+    discoArena.appendChild(line);
+  }
+
+  // Start visualizer animation
+  clearInterval(visualizerInterval);
+  visualizerInterval = setInterval(() => {
+    visualizer.querySelectorAll('span').forEach(bar => {
+      bar.style.height = `${40 + Math.random() * 90}px`;
+      bar.style.opacity = `${0.5 + Math.random() * 0.5}`;
+    });
+  }, 200);
 }
 
-function triggerDiscoBurst(x = window.innerWidth / 2, y = window.innerHeight / 2) {
-  const burst = document.createElement('div');
-  burst.className = 'disco-burst';
-  burst.style.left = `${x}px`;
-  burst.style.top = `${y}px`;
-  document.body.appendChild(burst);
-  setTimeout(() => burst.remove(), 650);
-  for (let i = 0; i < 6; i += 1) {
-    const emoji = document.createElement('div');
-    emoji.className = 'emoji-pop';
-    emoji.textContent = ['💜', '✨', '🎉', '🌟', '🕺', '🪩'][Math.floor(Math.random() * 6)];
-    emoji.style.left = `${x + randomOffset(80)}px`;
-    emoji.style.top = `${y + randomOffset(80)}px`;
-    emojiCloud.appendChild(emoji);
-    setTimeout(() => emoji.remove(), 1400);
+function stopDiscoRoom() {
+  clearInterval(visualizerInterval);
+  stopDiscoMusic();
+}
+
+// Simple Web Audio disco music
+function startDiscoMusic() {
+  if (!window.AudioContext && !window.webkitAudioContext) return;
+  if (discoAudioCtx) stopDiscoMusic();
+  discoAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+  const notes = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25]; // C major scale
+  let step = 0;
+
+  function playNote() {
+    if (!discoMusicOn) return;
+    const osc    = discoAudioCtx.createOscillator();
+    const gain   = discoAudioCtx.createGain();
+    osc.type     = 'square';
+    osc.frequency.setValueAtTime(notes[step % notes.length], discoAudioCtx.currentTime);
+    gain.gain.setValueAtTime(0.04, discoAudioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, discoAudioCtx.currentTime + 0.2);
+    osc.connect(gain);
+    gain.connect(discoAudioCtx.destination);
+    osc.start();
+    osc.stop(discoAudioCtx.currentTime + 0.25);
+    step++;
+    if (discoMusicOn) setTimeout(playNote, 220);
+  }
+
+  discoMusicOn = true;
+  playNote();
+}
+
+function stopDiscoMusic() {
+  discoMusicOn = false;
+  if (discoAudioCtx) {
+    discoAudioCtx.close().catch(() => {});
+    discoAudioCtx = null;
   }
 }
 
-function showQuizQuestion() {
+function toggleDiscoMusic() {
+  if (discoMusicOn) {
+    stopDiscoMusic();
+    discoToggle.textContent = '🎵 Music Off';
+    discoToggle.classList.remove('active');
+    showToast('Music stopped 🔇');
+  } else {
+    startDiscoMusic();
+    discoToggle.textContent = '🎵 Music On';
+    discoToggle.classList.add('active');
+    showToast('Disco music on! 🎶', 'success');
+  }
+}
+
+// ─── BTS VIBE QUIZ ───────────────────────────────────────────────────────────
+function startVibeQuiz() {
+  currentQuizIndex = 0;
+  selectedAnswer   = null;
+  quizAnswers      = [];
+  vibeResultCard.classList.add('hidden');
+  quizQuestion.parentElement.classList.remove('hidden');
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  const total    = quizQuestions.length;
   const question = quizQuestions[currentQuizIndex];
-  quizQuestion.textContent = question.prompt;
-  quizOptions.innerHTML = '';
-  selectedAnswer = null;
-  quizNext.disabled = true;
-  question.choices.forEach((choice, index) => {
-    const option = document.createElement('button');
-    option.type = 'button';
-    option.className = 'quiz-option';
-    option.textContent = choice;
-    option.addEventListener('click', () => {
-      selectedAnswer = index;
-      Array.from(quizOptions.children).forEach(btn => btn.classList.remove('active'));
-      option.classList.add('active');
-      quizNext.disabled = false;
-    });
-    quizOptions.appendChild(option);
+
+  quizQuestion.textContent           = question.prompt;
+  vibeProgress.textContent           = `${currentQuizIndex + 1} / ${total}`;
+  vibeProgressBar.style.width        = `${((currentQuizIndex + 1) / total) * 100}%`;
+
+  quizOptionsEl.innerHTML = '';
+  selectedAnswer          = null;
+  quizNext.disabled       = true;
+
+  question.choices.forEach((choice, i) => {
+    const btn = document.createElement('button');
+    btn.type      = 'button';
+    btn.className = 'quiz-option';
+    btn.textContent = choice;
+    btn.setAttribute('aria-label', `Option ${i + 1}: ${choice}`);
+    btn.addEventListener('click', () => selectQuizOption(btn, i));
+    quizOptionsEl.appendChild(btn);
   });
-  vibeProgress.textContent = `${currentQuizIndex + 1} / ${quizQuestions.length}`;
 }
 
-function completeQuiz() {
-  const scores = { RM: 0, Jin: 0, SUGA: 0, jhope: 0, Jimin: 0, V: 0, Jungkook: 0 };
-  quizAnswers.forEach((answerIndex, questionIndex) => {
-    const mapping = quizQuestions[questionIndex].match[answerIndex];
-    scores[mapping] += 1;
+function selectQuizOption(btn, index) {
+  $$('.quiz-option').forEach(b => {
+    b.classList.remove('active');
+    b.setAttribute('aria-pressed', 'false');
   });
-  const sorted = Object.entries(scores).sort((a, b) => b[1] - a[1]);
-  const winner = sorted[0][0];
-  const profile = vibeProfiles[winner];
-  vibeResultName.textContent = profile.name;
-  vibeResultDescription.textContent = profile.description;
-  vibeResultCard.classList.remove('hidden');
-  showToast(`You match ${profile.name}!`);
+  btn.classList.add('active');
+  btn.setAttribute('aria-pressed', 'true');
+  selectedAnswer = index;
+  quizNext.disabled = false;
 }
 
-function handleQuizNext() {
+function advanceQuiz() {
   if (selectedAnswer === null) return;
   quizAnswers.push(selectedAnswer);
-  currentQuizIndex += 1;
+  currentQuizIndex++;
   if (currentQuizIndex >= quizQuestions.length) {
-    completeQuiz();
+    showQuizResult();
   } else {
-    showQuizQuestion();
+    renderQuizQuestion();
   }
 }
 
-function addEventListeners() {
-  yesButton.addEventListener('click', () => {
-    showWebTransition(() => switchScreen('dashboardScreen'));
+function showQuizResult() {
+  // Tally scores
+  const scores = { RM: 0, Jin: 0, SUGA: 0, jhope: 0, Jimin: 0, V: 0, Jungkook: 0 };
+  quizAnswers.forEach((answerIdx, qIdx) => {
+    const member = quizQuestions[qIdx].match[answerIdx];
+    if (member && scores.hasOwnProperty(member)) scores[member]++;
   });
-  // Use global pointer events so the button escapes when cursor/touch gets close
-  const pointerHandler = (e) => {
-    // only active on landing screen
-    if (!landingScreen.classList.contains('active')) return;
-    const evt = e.type && e.type.startsWith('touch') ? (e.touches && e.touches[0]) || e : e;
-    moveNoButtonAway(evt);
-  };
-  document.addEventListener('pointermove', pointerHandler, { passive: true });
-  document.addEventListener('pointerdown', pointerHandler, { passive: true });
-  // reset when leaving landing
-  landingScreen.addEventListener('mouseleave', resetNoButton);
+  const winner  = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
+  const profile = vibeProfiles[winner];
 
-  dashboardCards.forEach(card => {
+  vibeResultEmoji.textContent       = profile.emoji;
+  vibeResultName.textContent        = profile.name;
+  vibeResultDesc.textContent        = profile.description;
+  vibeResultColor.style.background  = profile.color;
+
+  // Hide question card, show result
+  quizQuestion.parentElement.classList.add('hidden');
+  vibeResultCard.classList.remove('hidden');
+  vibeProgressBar.style.width = '100%';
+  vibeProgress.textContent    = `${quizQuestions.length} / ${quizQuestions.length}`;
+
+  launchConfetti();
+  showToast(`Your vibe is ${profile.name}! 💜`, 'success');
+}
+
+// ─── EVENT LISTENERS ─────────────────────────────────────────────────────────
+function initEventListeners() {
+  // Landing: YES
+  yesButton.addEventListener('click', () => {
+    navigateTo('dashboardScreen');
+  });
+
+  // Dashboard cards
+  $$('.dashboard-grid .glass-card').forEach(card => {
     card.addEventListener('click', () => {
       const target = card.dataset.target;
-      if (target) {
-        showWebTransition(() => {
-          switchScreen(target);
-          if (target === 'lyricsScreen') startLyricsGame();
-          if (target === 'roastScreen') loadRoast();
-          if (target === 'discoScreen') initDiscoRoom();
-          if (target === 'vibeScreen') {
-            currentQuizIndex = 0;
-            quizAnswers = [];
-            vibeResultCard.classList.add('hidden');
-            showQuizQuestion();
-          }
-        });
-      }
+      if (!target) return;
+      const inits = {
+        lyricsScreen: startLyricsGame,
+        roastScreen:  loadRoast,
+        discoScreen:  initDiscoRoom,
+        vibeScreen:   startVibeQuiz
+      };
+      navigateTo(target, inits[target]);
+    });
+    // Keyboard support
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); }
     });
   });
 
-  moodBoosterButton.addEventListener('click', () => {
-    const message = moodBoostMessages[Math.floor(Math.random() * moodBoostMessages.length)];
-    showToast(message);
-  });
+  // Mood Booster
+  moodBoosterBtn.addEventListener('click', showMoodBoost);
+  attachRipple(moodBoosterBtn);
 
-  backButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      showWebTransition(() => switchScreen('dashboardScreen'));
+  // Back buttons
+  $$('.back-button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (discoScreen.classList.contains('active')) stopDiscoRoom();
+      navigateTo('dashboardScreen');
     });
+    attachRipple(btn);
   });
 
+  // Lyrics
   lyricsSubmit.addEventListener('click', submitLyricAnswer);
-  lyricsAnswer.addEventListener('keypress', event => {
-    if (event.key === 'Enter') submitLyricAnswer();
-  });
   lyricsSkip.addEventListener('click', skipLyricQuestion);
+  lyricsRestart.addEventListener('click', startLyricsGame);
+  lyricsAnswer.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') submitLyricAnswer();
+  });
+  [lyricsSubmit, lyricsSkip, lyricsRestart].forEach(attachRipple);
 
+  // Roast
   generateRoast.addEventListener('click', loadRoast);
   copyRoast.addEventListener('click', copyCurrentRoast);
+  [generateRoast, copyRoast].forEach(attachRipple);
 
-  discoArena.addEventListener('click', event => {
-    triggerDiscoBurst(event.clientX, event.clientY);
+  // Disco
+  discoArena.addEventListener('click', (e) => {
+    triggerDiscoBurst(e.clientX, e.clientY);
   });
+  discoArena.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const touch = e.touches[0];
+    triggerDiscoBurst(touch.clientX, touch.clientY);
+  }, { passive: false });
+  discoToggle.addEventListener('click', toggleDiscoMusic);
+  attachRipple(discoToggle);
 
-  quizNext.addEventListener('click', handleQuizNext);
+  // Quiz
+  quizNext.addEventListener('click', advanceQuiz);
+  quizRestart.addEventListener('click', startVibeQuiz);
+  [quizNext, quizRestart].forEach(attachRipple);
 }
 
-function initVisualizer() {
-  if (!visualizer) return;
-  setInterval(() => {
-    visualizer.querySelectorAll('span').forEach(bar => {
-      bar.style.height = `${60 + Math.random() * 100}px`;
-    });
-  }, 300);
-}
-
+// ─── BOOT ────────────────────────────────────────────────────────────────────
 function initApp() {
-  addEventListeners();
-  initVisualizer();
-  createFloatingParticles(sparkleZone, 24, '#b86bff');
+  // Set initial aria states
+  $$('.screen').forEach(s => s.setAttribute('aria-hidden', 'true'));
+  landingScreen.setAttribute('aria-hidden', 'false');
+  landingScreen.classList.add('active');
+
+  initNoButton();
+  initEventListeners();
+  createFloatingParticles(sparkleZone, 28, '#b86bff');
 }
 
 initApp();
