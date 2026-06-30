@@ -99,61 +99,76 @@ function navigateTo(targetId, initFn) {
 
 // ─── LANDING PAGE — NO BUTTON ESCAPE ─────────────────────────────────────────
 function initNoButton() {
-  // Make NO button position:fixed so transform moves actual clickable area
-  noButton.style.position = 'fixed';
+  // Track current position — start as null (in normal flow)
+  let isFixed = false;
 
-  const rect  = noButton.getBoundingClientRect();
-  noButtonPos = { x: rect.left, y: rect.top };
+  function makeFixed() {
+    if (isFixed) return;
+    // Grab current rendered position before switching to fixed
+    const rect = noButton.getBoundingClientRect();
+    noButton.style.position = 'fixed';
+    noButton.style.left     = `${rect.left}px`;
+    noButton.style.top      = `${rect.top}px`;
+    noButton.style.margin   = '0';
+    noButtonPos = { x: rect.left, y: rect.top };
+    isFixed = true;
+  }
 
   function placeNoButton(x, y) {
-    const w   = window.innerWidth;
-    const h   = window.innerHeight;
-    const bw  = noButton.offsetWidth  || 170;
-    const bh  = noButton.offsetHeight || 58;
+    const bw  = noButton.offsetWidth  || 160;
+    const bh  = noButton.offsetHeight || 54;
     const pad = 16;
-    const nx  = Math.max(pad, Math.min(w - bw - pad, x));
-    const ny  = Math.max(pad, Math.min(h - bh - pad, y));
+    const nx  = Math.max(pad, Math.min(window.innerWidth  - bw - pad, x));
+    const ny  = Math.max(pad, Math.min(window.innerHeight - bh - pad, y));
     noButtonPos = { x: nx, y: ny };
     noButton.style.left = `${nx}px`;
     noButton.style.top  = `${ny}px`;
-    noButton.style.transform = 'none'; // use left/top instead of transform
   }
 
   function tryEscape(clientX, clientY) {
     if (!landingScreen.classList.contains('active')) return;
-    const cx  = noButtonPos.x + (noButton.offsetWidth  / 2);
-    const cy  = noButtonPos.y + (noButton.offsetHeight / 2);
-    const dx  = clientX - cx;
-    const dy  = clientY - cy;
+
+    // Use current position — fixed or from getBoundingClientRect
+    const rect = isFixed
+      ? { left: noButtonPos.x, top: noButtonPos.y,
+          width: noButton.offsetWidth, height: noButton.offsetHeight }
+      : noButton.getBoundingClientRect();
+
+    const cx   = rect.left + rect.width  / 2;
+    const cy   = rect.top  + rect.height / 2;
+    const dx   = clientX - cx;
+    const dy   = clientY - cy;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    if (dist < 140) {
-      // Push away in the opposite direction
-      const away = 200;
-      const newX = noButtonPos.x - (dx / dist) * away + (Math.random() - 0.5) * 120;
-      const newY = noButtonPos.y - (dy / dist) * away + (Math.random() - 0.5) * 120;
+
+    if (dist < 150) {
+      makeFixed(); // snap to fixed only when escape is needed
+      const away = 210;
+      const newX = (noButtonPos.x) - (dx / (dist || 1)) * away + (Math.random() - 0.5) * 100;
+      const newY = (noButtonPos.y) - (dy / (dist || 1)) * away + (Math.random() - 0.5) * 100;
       placeNoButton(newX, newY);
-      const msgs = ['Nice try 😏', 'You ARE bored.', 'Stop lying 😂', 'Almost had it!', 'Come on…'];
+      const msgs = ['Nice try 😏', 'You ARE bored.', 'Stop lying 😂', 'Almost had it!', 'Come on… 👀'];
       showToast(msgs[Math.floor(Math.random() * msgs.length)]);
     }
   }
 
-  document.addEventListener('pointermove', (e) => tryEscape(e.clientX, e.clientY), { passive: true });
-  document.addEventListener('pointerdown', (e) => {
-    // If clicking the NO button itself, treat as an escape attempt too
-    if (e.target === noButton || noButton.contains(e.target)) {
-      tryEscape(e.clientX, e.clientY);
-      e.preventDefault();
-    }
+  // Block actual clicks on the NO button — it should never do anything
+  noButton.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); });
+  noButton.addEventListener('pointerdown', (e) => {
+    tryEscape(e.clientX, e.clientY);
+    e.preventDefault();
   });
 
-  // Reset to natural position when landing is hidden
+  document.addEventListener('pointermove', (e) => tryEscape(e.clientX, e.clientY), { passive: true });
+
+  // Reset to normal flow when leaving landing
   function resetNoBtn() {
+    isFixed = false;
     noButton.style.position = '';
     noButton.style.left     = '';
     noButton.style.top      = '';
+    noButton.style.margin   = '';
   }
 
-  // Snap back to layout when leaving landing
   yesButton.addEventListener('click', resetNoBtn);
 }
 

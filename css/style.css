@@ -171,16 +171,24 @@ button { cursor: pointer; }
 }
 
 .screen.active {
-  display: block;
+  display: flex;
+  flex-direction: column;
   opacity: 1;
   transform: translateY(0) scale(1);
+}
+
+/* Landing needs its own flex centering — override column direction */
+.screen.landing.active {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 }
 
 /* ═══════════════════════════════════════════════════════════════
    LANDING SCREEN
    ═══════════════════════════════════════════════════════════════ */
 .landing {
-  display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100dvh;
@@ -288,8 +296,6 @@ button { cursor: pointer; }
    DASHBOARD
    ═══════════════════════════════════════════════════════════════ */
 .dashboard {
-  display: flex;
-  flex-direction: column;
   gap: 1.5rem;
   min-height: 100dvh;
   padding: 1.5rem 1.5rem 3rem;
@@ -494,8 +500,6 @@ button { cursor: pointer; }
    GAME SCREENS — SHARED
    ═══════════════════════════════════════════════════════════════ */
 .game-screen {
-  display: flex;
-  flex-direction: column;
   gap: 1.25rem;
   min-height: 100dvh;
   padding: 1.5rem 1.5rem 3rem;
